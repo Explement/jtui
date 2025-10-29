@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.endsWith;
 
 public class TerminalLayerTests {
     @Nested
@@ -22,15 +23,16 @@ public class TerminalLayerTests {
             String text = "test";
 
             Terminal terminal = new Terminal();
-            terminal.print(text);
+            terminal.print(text); 
 
-            assertEquals(text, outContent.toString());
+            assertTrue(outContent.toString().endsWith(text)); // ! Handle clear ANSI codes
         }
 
         @Test
         public void getTerminalSizeReturnsVector() {
-            assertNotNull(Terminal.getTerminalSize());
-            assertInstanceOf(Vector2.class, Terminal.getTerminalSize());
+            Terminal terminal = new Terminal();
+            assertNotNull(terminal.getTerminalSize());
+            assertInstanceOf(Vector2.class, terminal.getTerminalSize());
         }
     }
 

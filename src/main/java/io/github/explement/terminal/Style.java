@@ -1,6 +1,7 @@
 package io.github.explement.terminal;
 
 public enum Style {
+    NONE(""),
     RESET("\u001B[0m"),
     BLACK("\u001B[30m"),
     RED("\u001B[31m"),

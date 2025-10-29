@@ -4,7 +4,7 @@ public class StyleManager {
     public String applyStyle(String text, Style... styles) {
         StringBuilder stringBuilder = new StringBuilder();
         for (Style style : styles) {
-            stringBuilder.append(style.getCode());
+            if (style != null) stringBuilder.append(style.getCode());
         }
 
         stringBuilder.append(text);

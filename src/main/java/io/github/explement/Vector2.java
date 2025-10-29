@@ -8,6 +8,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Vector2 {
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
 }
