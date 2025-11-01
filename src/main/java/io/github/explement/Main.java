@@ -10,7 +10,7 @@ public class Main {
         InputManager inputManager = new InputManager(new InputHandler());
 
 
-        while (true) {
+        while (true) { // ? Keeps main thread alive
             Thread.sleep(1000);
         }
 

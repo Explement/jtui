@@ -7,7 +7,11 @@ import io.github.explement.Vector2;
 public class Terminal { // TODO: Potentially add cross-platform support
 
     public Terminal() {
-        clear();
+        this(true);
+    }
+    
+    public Terminal(boolean clear) {
+        if (clear) clear();
     }
 
     public void clear() {

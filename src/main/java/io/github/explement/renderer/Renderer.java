@@ -13,7 +13,7 @@ public class Renderer {
     private final StyleManager styleManager;
     private final CursorManager cursorManager;
 
-    private ScreenBuffer previousScreenBuffer;
+    private final ScreenBuffer previousScreenBuffer;
 
     public Renderer(TerminalFactory terminalFactory) {
         this.terminalFactory = terminalFactory;
@@ -55,6 +55,8 @@ public class Renderer {
                 }
             }
         }
+        
+        // Bottom-left cursor position
         cursorManager.moveTo(new Vector2(1, sbY + 1));
     }
 }

@@ -22,10 +22,10 @@ public class TerminalLayerTests {
 
             String text = "test";
 
-            Terminal terminal = new Terminal();
+            Terminal terminal = new Terminal(false);
             terminal.print(text); 
 
-            assertTrue(outContent.toString().endsWith(text)); // ! Handle clear ANSI codes
+            assertTrue(outContent.toString().equals(text)); // ! Handle clear ANSI codes
         }
 
         @Test

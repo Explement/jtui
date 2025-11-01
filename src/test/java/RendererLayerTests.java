@@ -1,16 +1,27 @@
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
-import javax.tools.StandardLocation;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import io.github.explement.Vector2;
 import io.github.explement.renderer.Cell;
+import io.github.explement.renderer.Renderer;
 import io.github.explement.renderer.ScreenBuffer;
+import io.github.explement.terminal.CursorManager;
 import io.github.explement.terminal.Style;
+import io.github.explement.terminal.StyleManager;
+import io.github.explement.terminal.Terminal;
 
 public class RendererLayerTests {
     @Nested
@@ -20,7 +31,7 @@ public class RendererLayerTests {
             Cell cell1 = new Cell('A', Style.RED);
             Cell cell2 = new Cell('A', Style.RED);
 
-            assertTrue(cell1.equals(cell2));
+            assertEquals(cell1, cell2);
         }
 
         @Test
@@ -28,7 +39,7 @@ public class RendererLayerTests {
             Cell cell1 = new Cell('A', Style.RED);
             Cell cell2 = new Cell('B', Style.RED);
 
-            assertFalse(cell1.equals(cell2));
+            assertNotEquals(cell1, cell2);
         }
 
         @Test
@@ -36,7 +47,7 @@ public class RendererLayerTests {
             Cell cell1 = new Cell('A', Style.RED);
             Cell cell2 = new Cell('A', Style.BLUE);
 
-            assertFalse(cell1.equals(cell2));
+            assertNotEquals(cell1, cell2);
         }
 
         @Test
@@ -45,8 +56,8 @@ public class RendererLayerTests {
             Cell cell2 = new Cell('A', null);
             Cell cell3 = new Cell('A', Style.RED);
 
-            assertTrue(cell1.equals(cell2));
-            assertFalse(cell1.equals(cell3));
+            assertEquals(cell1, cell2);
+            assertNotEquals(cell1, cell3);
         }
 
         @Test
@@ -146,11 +157,11 @@ public class RendererLayerTests {
 
             buffer.clearCells();
 
-            assertEquals(buffer.getCell(position1), new Cell());
-            assertEquals(buffer.getCell(position2), new Cell());
-            assertEquals(buffer.getCell(position3), new Cell());
-            assertEquals(buffer.getCell(position4), new Cell());
-            assertEquals(buffer.getCell(position5), new Cell());
+            assertEquals(new Cell(), buffer.getCell(position1));
+            assertEquals(new Cell(), buffer.getCell(position2));
+            assertEquals(new Cell(), buffer.getCell(position3));
+            assertEquals(new Cell(), buffer.getCell(position4));
+            assertEquals(new Cell(), buffer.getCell(position5));
         }
 
         @Test
@@ -162,7 +173,7 @@ public class RendererLayerTests {
             buffer.setCell(newCell, position);            
             buffer.clearCell(position);
 
-            assertEquals(buffer.getCell(position), new Cell());
+            assertEquals(new Cell(), buffer.getCell(position));
         }
         @Test
         void clearCellThrowsExceptionForNullPosition() {
@@ -190,7 +201,72 @@ public class RendererLayerTests {
     }
 
     @Nested
-    class RendererTests { // ? Possibly mock tests?
-        
+    class RendererTests { 
+        private Renderer renderer;
+        private ScreenBuffer screenBuffer;
+        private Terminal terminal;
+        private StyleManager styleManager;
+        private CursorManager cursorManager;
+
+        @BeforeEach
+        void setup() {
+            screenBuffer = new ScreenBuffer(new Vector2(10, 10)); // ! Don't mock ScreenBuffer
+            terminal = mock(Terminal.class);
+            styleManager = mock(StyleManager.class);
+            cursorManager = mock(CursorManager.class);
+
+            screenBuffer.setCell(new Cell('A', null), new Vector2(0, 0));
+            screenBuffer.setCell(new Cell('B', null), new Vector2(1, 0));
+
+            // * Return String on applyStyle(), ignoring styles
+            when(styleManager.applyStyle(anyString(), any())).thenAnswer(i -> i.getArgument(0));
+
+            renderer = new Renderer(screenBuffer, terminal, styleManager, cursorManager);
+        }
+
+        @Test
+        void rendererPrintsToTerminal() {
+            renderer.render();
+
+            // * Twice for actual movements, once for moving to end
+            verify(cursorManager, times(3)).moveTo(any(Vector2.class));
+
+            verify(terminal, times(1)).print("A");
+            verify(terminal, times(1)).print("B");
+        }
+
+        @Test
+        void rendererDoesNotPrintUnchangedCells() {
+            renderer.render();
+
+            // Clear for verifications 
+            clearInvocations(terminal, cursorManager);
+
+            renderer.render();
+
+            verify(cursorManager, times(1)).moveTo(any(Vector2.class)); // Only for setting cursor to bottom-left
+            verify(terminal, never()).print(anyString());
+        }
+
+        @Test
+        void rendererUpdatesChangedCells() {
+            Cell cellA = new Cell('X', null);
+            Cell cellB = new Cell('Y', null);
+
+            renderer.render();
+
+            clearInvocations(terminal, cursorManager);
+
+            screenBuffer.setCell(cellA, new Vector2(0, 0));
+            screenBuffer.setCell(cellB, new Vector2(1, 0));
+
+            renderer.render();
+
+            verify(cursorManager, times(3)).moveTo(any(Vector2.class));
+            verify(terminal).print("Y");
+            verify(terminal).print("X");
+        }
+
+
     }
 }

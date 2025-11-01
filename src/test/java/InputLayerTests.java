@@ -17,6 +17,7 @@ public class InputLayerTests {
         private InputHandler mockHandler;
         private InputManager.User32 mockUser32;
         private InputManager inputManager;
+        
         @BeforeEach
         void setup() {
             mockHandler = Mockito.mock(InputHandler.class);
