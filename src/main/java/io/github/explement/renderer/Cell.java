@@ -1,11 +1,9 @@
 package io.github.explement.renderer;
 
 import io.github.explement.terminal.Style;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
 public class Cell {
@@ -13,8 +11,16 @@ public class Cell {
     private Style style;
 
     public Cell() {
-        this.character = ' ';
+        this(' ');
+    }
 
+    public Cell(char character) {
+        this(character, Style.NONE);
+    }
+
+    public Cell(char character,  Style style) {
+        this.character = character;
+        this.style = style;
     }
 
     @Override

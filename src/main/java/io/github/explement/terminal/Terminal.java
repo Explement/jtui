@@ -39,4 +39,8 @@ public class Terminal { // TODO: Potentially add cross-platform support
     public void print(Object object) {
         System.out.print(object);
     }
+    public void printAt(Object object, Vector2 position, CursorManager cursorManager) {
+        cursorManager.moveTo(position);
+        System.out.print(object);
+    }
 }

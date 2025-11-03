@@ -3,8 +3,14 @@ package io.github.explement.renderer;
 import io.github.explement.Vector2;
 import lombok.Getter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ScreenBuffer {
+    @Getter
     private Cell[][] cellArray;
+    @Getter
+    private Set<Vector2> dirtyCells = new HashSet<>();
     @Getter
     private Vector2 size;
 
@@ -40,6 +46,7 @@ public class ScreenBuffer {
             throw new IndexOutOfBoundsException("Position " + position + " is out of bounds for ScreenBuffer of size " + size);
         }
         cellArray[position.getY()][position.getX()] = cell;
+        setDirty(new Vector2(position.getX(), position.getY()));
     }
 
     public Cell getCell(Vector2 position) {
@@ -61,7 +68,9 @@ public class ScreenBuffer {
             position.getY() < 0 || position.getY() >= size.getY()) {
             throw new IndexOutOfBoundsException("Position " + position + " is out of bounds for ScreenBuffer of size " + size);
         }
-        cellArray[position.getY()][position.getX()] = new Cell();
+        Cell cell = new Cell();
+        cellArray[position.getY()][position.getX()] = cell;
+        setDirty(new Vector2(position.getX(), position.getY()));
     }
 
     public void clearCells() {
@@ -72,7 +81,15 @@ public class ScreenBuffer {
         }
     }
 
-    public Cell[][] getCellArray() {
-        return cellArray;
+    public void clearDirty() {
+        dirtyCells.clear();
     }
+
+    public void setDirty(Vector2 position) {
+        if (position == null) {
+            throw new IllegalArgumentException("Position cannot be null");
+        }
+        dirtyCells.add(position);
+    }
+
 }

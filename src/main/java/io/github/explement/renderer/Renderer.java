@@ -34,29 +34,29 @@ public class Renderer {
     }
 
     public void render() { // TODO: Diff-based rendering
-        int sbX = screenBuffer.getSize().getX();
-        int sbY = screenBuffer.getSize().getY();
+        int sbSizeX = screenBuffer.getSize().getX();
+        int sbSizeY = screenBuffer.getSize().getY();
 
-        for (int y = 0; y < sbY; y++) {
-            for (int x = 0; x < sbX; x++) {
-                Cell current = screenBuffer.getCell(new Vector2(x, y));
-                Cell previous = previousScreenBuffer.getCell(new Vector2(x, y));
+        for (Vector2 position : screenBuffer.getDirtyCells()) {
+            int x = position.getX();
+            int y = position.getY();
 
-                if (!current.equals(previous)) {
-                    cursorManager.moveTo(new Vector2(x + 1, y + 1));
+            Cell cell = screenBuffer.getCell(position);
 
-                    terminal.print(
-                            styleManager.applyStyle(
-                                    String.valueOf(current.getCharacter()), current.getStyle()
-                            )
-                    );
-
-                    previousScreenBuffer.setCell(current, new Vector2(x, y));
-                }
-            }
+            terminal.printAt(
+                    styleManager.applyStyle(
+                            String.valueOf(cell.getCharacter()), cell.getStyle()
+                    )
+                    ,
+                    new Vector2(x + 1, y + 1)
+                    ,
+                    cursorManager
+            );
         }
-        
+
+        screenBuffer.clearDirty();
+
         // Bottom-left cursor position
-        cursorManager.moveTo(new Vector2(1, sbY + 1));
+        cursorManager.moveTo(new Vector2(1, sbSizeY + 1));
     }
 }

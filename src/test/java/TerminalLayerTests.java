@@ -1,16 +1,19 @@
+import static org.mockito.Mockito.verify;
+
 import io.github.explement.Vector2;
 import io.github.explement.terminal.CursorManager;
 import io.github.explement.terminal.Style;
 import io.github.explement.terminal.StyleManager;
 import io.github.explement.terminal.Terminal;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.endsWith;
 
 public class TerminalLayerTests {
     @Nested
@@ -23,16 +26,25 @@ public class TerminalLayerTests {
             String text = "test";
 
             Terminal terminal = new Terminal(false);
-            terminal.print(text); 
+            terminal.print(text);
 
-            assertTrue(outContent.toString().equals(text)); // ! Handle clear ANSI codes
+            assertEquals(text, outContent.toString()); // ? Handle clear ANSI codes
         }
 
         @Test
         public void getTerminalSizeReturnsVector() {
-            Terminal terminal = new Terminal();
+            Terminal terminal = new Terminal(false);
             assertNotNull(terminal.getTerminalSize());
             assertInstanceOf(Vector2.class, terminal.getTerminalSize());
+        }
+
+        @Test
+        public void printAtOutputsAtCorrectPosition() {
+            Terminal  terminal = new Terminal(false);
+            CursorManager cursorManager = Mockito.mock(CursorManager.class);
+            terminal.printAt("A", new Vector2(0, 0), cursorManager);
+
+            verify(cursorManager).moveTo(new Vector2(0, 0));
         }
     }
 
@@ -63,8 +75,13 @@ public class TerminalLayerTests {
 
         @Test
         void moveToUpdatesPosition() {
-            // TODO: Write test.
-            assertTrue(true);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(out));
+            CursorManager cm = new CursorManager();
+
+            cm.moveTo(new Vector2(6, 7));
+
+            assertEquals("\u001B[7;6H", out.toString());
         }
     }
 
@@ -81,7 +98,7 @@ public class TerminalLayerTests {
         @Test
         void appliesMultipleStyles() {
             StyleManager styleManager = new StyleManager();
-            String result = styleManager.applyStyle("test", new Style[] {Style.RED, Style.BG_BLUE});
+            String result = styleManager.applyStyle("test", Style.RED, Style.BG_BLUE);
             assertTrue(result.startsWith(Style.RED.getCode() + Style.BG_BLUE.getCode()));
             assertTrue(result.endsWith(Style.RESET.getCode()));
         }

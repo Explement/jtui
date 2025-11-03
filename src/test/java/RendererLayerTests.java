@@ -1,6 +1,5 @@
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -9,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -197,7 +197,41 @@ public class RendererLayerTests {
             assertThrows(IllegalArgumentException.class, () -> new ScreenBuffer(new Vector2(-1, -4)));
         }
 
+        @Test
+        void clearDirtyClearsSet() {
+            ScreenBuffer screenBuffer = new ScreenBuffer(new Vector2(10, 10));
+            Cell cell1 = new Cell('A', Style.RED);
+            Cell cell2 = new Cell('B', Style.GREEN);
+            Cell cell3 = new Cell('C', Style.BLUE);
+            Vector2 position1 = new Vector2(1, 1);
+            Vector2 position2 = new Vector2(2, 2);
+            Vector2 position3 = new Vector2(3, 3);
 
+            screenBuffer.setCell(cell1, position1);
+            screenBuffer.setCell(cell2, position2);
+            screenBuffer.setCell(cell3, position3);
+
+            assertTrue(screenBuffer.getDirtyCells().containsAll(List.of(position1, position2, position3)));
+
+            screenBuffer.clearDirty();
+
+            assertTrue(screenBuffer.getDirtyCells().isEmpty());
+        }
+
+        @Test
+        void setDirtyAddsToSet() {
+            ScreenBuffer screenBuffer = new ScreenBuffer(new Vector2(10, 10));
+            Cell cell1 = new Cell('A', Style.RED);
+
+            screenBuffer.setCell(cell1, new Vector2(1, 1));
+            screenBuffer.clearDirty();
+
+            assertTrue(screenBuffer.getDirtyCells().isEmpty());
+
+            screenBuffer.setDirty(new Vector2(1, 1));
+
+            assertTrue(screenBuffer.getDirtyCells().contains(new Vector2(1, 1)));
+        }
     }
 
     @Nested
@@ -228,11 +262,11 @@ public class RendererLayerTests {
         void rendererPrintsToTerminal() {
             renderer.render();
 
-            // * Twice for actual movements, once for moving to end
-            verify(cursorManager, times(3)).moveTo(any(Vector2.class));
+            // * Only once for moving at the end (terminal.printAt() handles movements)
+            verify(cursorManager, times(1)).moveTo(any(Vector2.class));
 
-            verify(terminal, times(1)).print("A");
-            verify(terminal, times(1)).print("B");
+            verify(terminal, times(1)).printAt(eq("A"), any(Vector2.class), any(CursorManager.class));
+            verify(terminal, times(1)).printAt(eq("B"), any(Vector2.class), any(CursorManager.class));
         }
 
         @Test
@@ -262,9 +296,10 @@ public class RendererLayerTests {
 
             renderer.render();
 
-            verify(cursorManager, times(3)).moveTo(any(Vector2.class));
-            verify(terminal).print("Y");
-            verify(terminal).print("X");
+            // * Only once for moving at the end (terminal.printAt() handles movements)
+            verify(cursorManager, times(1)).moveTo(any(Vector2.class));
+            verify(terminal, times(1)).printAt(eq("Y"), any(Vector2.class), any(CursorManager.class));
+            verify(terminal, times(1)).printAt(eq("X"), any(Vector2.class), any(CursorManager.class));
         }
 
 
